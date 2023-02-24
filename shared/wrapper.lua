@@ -15,8 +15,17 @@ function getObject(from)
     else -- else get the wrapper file and load it
         print("loading wrapper from "..from.." to "..to)
 
-        local wrapper = utilityWrapper:getWrapperFile(from, to) 
-        return load(wrapper)()
+        local wrapper = utilityWrapper:getWrapperFile(from, to)
+        local loaded = load(wrapper)
+
+        local success, result = pcall(loaded)
+
+        if not success then
+            print("^1WRAPPER ERROR: "..result.."^0")
+            print("^1TRY RUNNING THE WRAPPER DIRECTLY TO GET A BETTER STACK TRACEBACK^0")
+        else
+            return result
+        end
     end
 end
 

@@ -3,10 +3,10 @@ game "gta5"
 
 shared_scripts {
     "config.lua",
-    "exports.lua"
+    "shared/exports.lua"
 }
 
 files {
-    "wrapper.lua",
+    "shared/wrapper.lua",
     "wrappers/**.lua"
 }
