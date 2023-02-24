@@ -49,14 +49,14 @@ if IsDuplicityVersion() then
                 else
                     return math.floor(value + 0.5)
                 end
-            end
+            end,
             
             -- credit http://richard.warburton.it
             GroupDigits = function(value)
                 local left,num,right = string.match(value,'^([^%d]*%d)(%d*)(.-)$')
             
                 return left..(num:reverse():gsub('(%d%d%d)','%1' .. TranslateCap('locale_digit_grouping_symbol')):reverse())..right
-            end
+            end,
             
             Trim = function(value)
                 if value then
@@ -65,7 +65,7 @@ if IsDuplicityVersion() then
                     return nil
                 end
             end
-        }
+        },
 
         RegisterServerCallback = QBCore.Functions.CreateCallback,
         RegisterUsableItem = QBCore.Functions.CreateUseableItem,
@@ -167,166 +167,10 @@ if IsDuplicityVersion() then
                     end
 
                     return false
-                end
+                end,
                 hasItem = function(item, metadata) -- we can't check the metadata since i couldn't find any function to get the filtered item with the metadata
                     return Player.Functions.GetItemByName(name) ~= nil
-                end
-
-
-                removeWeapon = function(name)
-                    Player.Functions.RemoveItem(name, 1)
                 end,
-                addWeapon = function(name, ammo)
-                    Player.Functions.AddItem(name, 1, nil, {ammo = ammo})
-                    SetPedAmmo(GetPlayerPed(source), GetHashKey(name), ammo)
-                end,
-
-                hasWeapon = function(name)
-                    return Player.Functions.GetItemByName(name) ~= nil
-                end,
-
-                setWeaponTint = function(weaponName, weaponTintIndex)
-                    -- qb-weapons does not allow to set the tint of a weapon that is not selected (doesnt have any exports), so i simply give the item
-                    Player.Functions.AddItem(weaponTints[weaponTintIndex], 1)
-                end,
-
-                addWeaponAmmo = function(weaponName, ammo)
-                    local item = Player.Functions.GetItemByName(name)
-
-                    if Player.PlayerData.items[item.slot] then
-                        Player.PlayerData.items[item.slot].info.ammo = item.info.ammo + ammo
-                    end
-                    Player.Functions.SetInventory(Player.PlayerData.items, true)
-
-                    local player = GetPlayerPed(source)
-                    local totalAmmo = GetAmmoInPedWeapon(player, GetHashKey(name))
-                    SetPedAmmo(player, GetHashKey(name), totalAmmo + ammo)
-                end,
-                removeWeaponAmmo = function(weaponName, ammo)
-                    local item = Player.Functions.GetItemByName(name)
-
-                    if Player.PlayerData.items[item.slot] then
-                        Player.PlayerData.items[item.slot].info.ammo = item.info.ammo - ammo
-                    end
-                    Player.Functions.SetInventory(Player.PlayerData.items, true)
-
-                    local player = GetPlayerPed(source)
-                    local totalAmmo = GetAmmoInPedWeapon(player, GetHashKey(name))
-                    SetPedAmmo(player, GetHashKey(name), totalAmmo - ammo)
-                end,
-
-                set = Player.Functions.SetMetaData,
-                get = Player.Functions.GetMetaData,
-
-                addAccountMoney = function(account, value)
-                    Player.Functions.AddMoney(ConvertAccount(account), value)
-                end,
-
-                -- not implemented
-                getWeaponTint = function()
-                    error("[Utility Wrapper] the method 'getWeaponTint' is not yet implemented")
-                    return false
-                end,
-                removeWeaponComponent = function(weaponName, weaponTintIndex)
-                    error("[Utility Wrapper] the method 'removeWeaponComponent' is not yet implemented")
-                    -- to do
-                    return "todo"    
-                end,
-                addWeaponComponent = function(weaponName, weaponTintIndex)
-                    error("[Utility Wrapper] the method 'addWeaponComponent' is not yet implemented")
-                    -- to do
-                    return "todo"
-                end,
-                hasWeaponComponent = function(weaponName, weaponTintIndex)
-                    error("[Utility Wrapper] the method 'hasWeaponComponent' is not yet implemented")
-                    -- to do
-                    return "todo"
-                end,
-            }
-            return {
-                identifier = Player.PlayerData.citizenid,
-                group = QBCore.Functions.GetPermission(source),
-                job = {
-                    name = Player.PlayerData.job.name,
-                    label = Player.PlayerData.job.label,
-
-                    grade = Player.PlayerData.job.grade.level,
-                    grade_name = Player.PlayerData.job.grade.name,
-                    grade_label = Player.PlayerData.job.grade.name,
-                    grade_salary = Player.PlayerData.job.payment,
-                },
-                inventory = items,
-                name = Player.PlayerData.name,
-                license = Player.PlayerData.license,
-                coords = Player.PlayerData.position,
-                weight = weight,
-                maxWeight = maxWeight,
-                playerId = Player.PlayerData.source,
-                source = Player.PlayerData.source,
-                loadout = {},
-                variables = Player.PlayerData.metadata,
-                accounts = {
-                    {
-                        label = "money",
-                        index = 1,
-                        name = "money",
-                        round = true,
-                        money = Player.Functions.GetMoney("money")
-                    },
-                    {
-                        label = "bank",
-                        index = 2,
-                        name = "bank",
-                        round = true,
-                        money = Player.Functions.GetMoney("bank")
-                    },
-                    {
-                        label = "black_money",
-                        index = 3,
-                        name = "black_money",
-                        round = true,
-                        money = 0
-                    },
-                },
-
-                kick = function(reason)
-                    DropPlayer(source, reason)
-                end,
-                removeInventoryItem = Player.Functions.RemoveItem,
-                addInventoryItem = Player.Functions.AddItem,
-                setInventoryItem = function(name, value)
-                    local item = Player.Functions.GetItemByName(name)
-
-                    Player.Functions.RemoveItem(name, item.amount)
-                    Player.Functions.AddItem(name, value)
-                end,
-                getInventoryItem = function(name)
-                    local item = Player.Functions.GetItemByName(name)
-
-                    return ConvertItem(Player, item)
-                end,
-                canCarryItem = function(name, count)
-                    local item = Player.Functions.GetItemByName(name)
-                    local newWeight = weight + (item.weight * count)
-
-                    return newWeight <= maxWeight
-                end,
-                canSwapItem = function(firstItem, firstItemCount, testItem, testItemCount)
-                    local firstItemObject = Player.Functions.GetItemByName(firstItem)
-                    local testItemObject = Player.Functions.GetItemByName(testItem)
-
-                    if firstItemObject.amount >= firstItemCount then
-                        local weightWithoutFirstItem = math.floor(self.weight - (firstItemObject.weight * firstItemCount))
-                        local weightWithTestItem = math.floor(weightWithoutFirstItem + (testItemObject.weight * testItemCount))
-
-                        return weightWithTestItem <= maxWeight
-                    end
-
-                    return false
-                end
-                hasItem = function(item, metadata) -- we can't check the metadata since i couldn't find any function to get the filtered item with the metadata
-                    return Player.Functions.GetItemByName(name) ~= nil
-                end
 
 
                 removeWeapon = function(name)
@@ -421,7 +265,7 @@ if IsDuplicityVersion() then
                 end,
                 getMoney = function()
                     return Player.Functions.GetMoney("cash")
-                end
+                end,
 
                 setCoords = function(coords)
                     local player = GetPlayerPed(id)
@@ -500,7 +344,7 @@ if IsDuplicityVersion() then
 
                 triggerEvent = function(eventName, ...)
                     TriggerClientEvent(eventName, source, ...)
-                end
+                end,
 
                  -- it seems that the qb-weapons resource has 0 api for developers, i haven't seen even one export, so for now they are not implemented
                 getWeaponTint = function()
