@@ -1,21 +1,18 @@
+Wrappers = {}
+
 exports("getConfig", function()
     return Config
 end)
 
-local wrappersCache = {}
-exports("getWrapperFile", function(from, to)
-    if not wrappersCache[from] then
-        wrappersCache[from] = {}
-    end
-    
-    if not wrappersCache[from][to] then
-        wrappersCache[from][to] = LoadResourceFile(GetCurrentResourceName(), "wrappers/"..from.."/"..to..".lua")
-    end
-
-    return wrappersCache[from][to]
+exports("getWrapper", function(from, to)
+    return Wrappers[from][to]
 end)
-
 
 exports("getMethodName", function(framework)
     return Config.MethodNames[framework]
 end)
+
+-- We use Config.MethodNames as if it were a list of supported frameworks to create all the support tables (getWrapper "from" parameter) for the various wrappers 
+for k,v in pairs(Config.MethodNames) do
+    Wrappers[k] = {}
+end
